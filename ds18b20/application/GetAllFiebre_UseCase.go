@@ -15,6 +15,6 @@ func NewGetAllFiebreUseCase(fiebre repository.Fiebre) *GetAllFiebreUseCase {
 	}
 }
 
-func (u *GetAllFiebreUseCase) GetAllFiebre() ([]*entities.AlertaDs18b20, error) {
+func (u *GetAllFiebreUseCase) Run() ([]*entities.AlertaDs18b20, error) {
 	return u.fiebreRepo.FindAll()
 }

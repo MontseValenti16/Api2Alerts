@@ -6,7 +6,7 @@ import (
 )
 
 type GetAllHipotermiaUseCase struct {
-	hipotermiaRepo *repository.Hipotermia
+	hipotermiaRepo repository.Hipotermia
 }
 
 func NewGetAllHipotermiaUseCase(hipotermia repository.Hipotermia) *GetAllHipotermiaUseCase {
