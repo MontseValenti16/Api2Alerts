@@ -26,3 +26,4 @@ func (c *CreateAlertaController) SaveFiebre(ctx *gin.Context) {
 	}
 	ctx.JSON(http.StatusOK, gin.H{"message": "Guardado"})
 }
+
