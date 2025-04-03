@@ -1,80 +1,89 @@
-// core/rabbitmq/rabbitmq.go
-package rabbitmq
+package mqtt
 
 import (
 	"LifeGuardAlertas/src/alerta/domain/entities"
 	"encoding/json"
 	"fmt"
 	"log"
+	"time"
 
+	mqtt "github.com/eclipse/paho.mqtt.golang"
 )
 
 const (
-	QueueName = "cola_alertas"
+	AlertTopic = "cola_alertas" // Topic MQTT para las alertas
 )
 
-var conn *amqp.Connection
-var channel *amqp.Channel
+var (
+	client mqtt.Client
+)
 
-func InitRabbitMQ() error {
-	var err error
-	conn, err = amqp.Dial("amqp://guest:guest@52.5.39.187:1883/")
-	if err != nil {
-		return fmt.Errorf("failed to connect to RabbitMQ: %w", err)
+// Configuración de MQTT (basada en tu ejemplo)
+type Config struct {
+	Host     string
+	Port     string
+	Username string
+	Password string
+}
+
+func getConfig() Config {
+	return Config{
+		Host:     "52.5.39.187", // Misma IP que en tu ejemplo
+		Port:     "1883",        // Puerto estándar MQTT
+		Username: "admin",       // Mismo usuario
+		Password: "password",    // Misma contraseña
+	}
+}
+
+func InitMQTT() error {
+	config := getConfig()
+
+	opts := mqtt.NewClientOptions()
+	opts.AddBroker(fmt.Sprintf("tcp://%s:%s", config.Host, config.Port))
+	opts.SetClientID("alertas-publisher")
+	opts.SetUsername(config.Username)
+	opts.SetPassword(config.Password)
+	opts.SetAutoReconnect(true)
+	opts.SetConnectRetry(true)
+	opts.SetConnectRetryInterval(5 * time.Second)
+	opts.SetOnConnectHandler(onConnect)
+
+	client = mqtt.NewClient(opts)
+	if token := client.Connect(); token.Wait() && token.Error() != nil {
+		return fmt.Errorf("error conectando a MQTT: %v", token.Error())
 	}
 
-	channel, err = conn.Channel()
-	if err != nil {
-		return fmt.Errorf("failed to open a channel: %w", err)
-	}
-
-	_, err = channel.QueueDeclare(
-		QueueName, // name
-		true,      // durable
-		false,     // delete when unused
-		false,     // exclusive
-		false,     // no-wait
-		nil,       // arguments
-	)
-	if err != nil {
-		return fmt.Errorf("failed to declare a queue: %w", err)
-	}
-
+	log.Println("Conexión MQTT establecida para alertas")
 	return nil
 }
 
-func SendToRabbitMQ(alerta *entities.Alerta) error {
-	if channel == nil {
-		return fmt.Errorf("RabbitMQ channel not initialized")
+func onConnect(c mqtt.Client) {
+	log.Println("Reconectado a MQTT")
+}
+
+func SendAlert(alerta *entities.Alerta) error {
+	if !client.IsConnected() {
+		return fmt.Errorf("cliente MQTT no conectado")
 	}
 
-	body, err := json.Marshal(alerta)
+	payload, err := json.Marshal(alerta)
 	if err != nil {
-		return fmt.Errorf("error marshaling alerta: %w", err)
+		return fmt.Errorf("error serializando alerta: %v", err)
 	}
 
-	err = channel.Publish(
-		"",        // exchange
-		QueueName, // routing key
-		false,     // mandatory
-		false,     // immediate
-		amqp.Publishing{
-			ContentType: "application/json",
-			Body:        body,
-		})
-	if err != nil {
-		return fmt.Errorf("failed to publish a message: %w", err)
+	token := client.Publish(AlertTopic, 1, false, payload)
+	token.Wait()
+	if token.Error() != nil {
+		return fmt.Errorf("error publicando alerta: %v", token.Error())
 	}
 
-	log.Printf("Alerta enviada a RabbitMQ: %+v", alerta)
+	log.Printf("Alerta enviada por MQTT (Topic: %s): %+v", AlertTopic, alerta)
 	return nil
 }
 
 func Close() {
-	if channel != nil {
-		channel.Close()
-	}
-	if conn != nil {
-		conn.Close()
+	if client != nil && client.IsConnected() {
+		client.Disconnect(250)
+		log.Println("Conexión MQTT cerrada")
 	}
 }

@@ -24,6 +24,14 @@ func (c *CreateAlertaController) SaveFiebre(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	ctx.JSON(http.StatusOK, gin.H{"message": "Guardado"})
-}
 
+	if err := c.createAlertaUseCase.Run(&data); err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	ctx.JSON(http.StatusCreated, gin.H{
+		"message": "Alerta guardada y enviada a MQTT",
+		"data":    data,
+	})
+}

@@ -7,4 +7,5 @@ type Alerta struct {
 	Accion			string `json:"accion"`
 	Nivel_peligro 	string `json:"nivel_peligro"`
 	Fecha 			string `json:"fecha"`
+	IDPERSONA		int	   `json:"id_persona"`
 }
