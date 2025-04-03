@@ -1,9 +1,9 @@
-// infrastructure/repository/mysql/mysql.go
 package mysql
 
 import (
 	"LifeGuardAlertas/src/alerta/domain/entities"
 	"LifeGuardAlertas/src/core/db"
+	"LifeGuardAlertas/src/core/rabbitmq"
 	"fmt"
 	"log"
 )
@@ -21,23 +21,30 @@ func NewMySQL() *MySQL {
 }
 
 func (mysql *MySQL) Create(data *entities.Alerta) error {
-	query := "INSERT INTO alertas (macaddress, mensaje, accion, nivel_peligro, fecha) VALUES (?, ?, ?, ?, ?)"
-	_, err := mysql.conn.DB.Exec(query, data.MacAddress, data.Mensaje, data.Accion, data.Nivel_peligro, data.Fecha)
+	query := "INSERT INTO alertas (macaddress, mensaje, accion, nivel_peligro, fecha, id_persona) VALUES (?, ?, ?, ?, ?, ?)"
+	result, err := mysql.conn.DB.Exec(query, data.MacAddress, data.Mensaje, data.Accion, data.Nivel_peligro, data.Fecha, data.IDPERSONA)
 	if err != nil {
 		return fmt.Errorf("error al guardar el dato en la base de datos: %w", err)
 	}
-	
-	// Enviar a RabbitMQ después de guardar en DB
-	err = SendToRabbitMQ(data)
+
+	// Obtener el ID generado
+	id, err := result.LastInsertId()
 	if err != nil {
-		log.Printf("Error enviando a RabbitMQ: %v", err)
+		return fmt.Errorf("error al obtener ID insertado: %w", err)
 	}
-	
+	data.ID = int(id)
+
+	// Enviar alerta por MQTT
+	if err := mqtt.SendAlert(data); err != nil {
+		log.Printf("Error enviando alerta por MQTT: %v", err)
+		// No retornamos el error porque el dato ya se guardó en la DB
+	}
+
 	return nil
 }
 
 func (mysql *MySQL) GetAll() ([]entities.Alerta, error) {
-	query := "SELECT id, macaddress, mensaje, accion, nivel_peligro, fecha FROM alertas ORDER BY fecha DESC"
+	query := "SELECT id, macaddress, mensaje, accion, nivel_peligro, fecha, id_persona FROM alertas ORDER BY fecha DESC"
 	rows, err := mysql.conn.DB.Query(query)
 	if err != nil {
 		return nil, fmt.Errorf("error al obtener alertas: %w", err)
@@ -58,7 +65,7 @@ func (mysql *MySQL) GetAll() ([]entities.Alerta, error) {
 }
 
 func (mysql *MySQL) GetByMacAddress(macAddress string) ([]entities.Alerta, error) {
-	query := "SELECT id, macaddress, mensaje, accion, nivel_peligro, fecha FROM alertas WHERE macaddress = ? ORDER BY fecha DESC"
+	query := "SELECT id, macaddress, mensaje, accion, nivel_peligro, id_persona, fecha FROM alertas WHERE macaddress = ? ORDER BY fecha DESC"
 	rows, err := mysql.conn.DB.Query(query, macAddress)
 	if err != nil {
 		return nil, fmt.Errorf("error al obtener alertas por macaddress: %w", err)
