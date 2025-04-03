@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	AlertTopic = "cola_alertas" // Topic MQTT para las alertas
+	AlertTopic = "alertas" // Topic MQTT para las alertas
 )
 
 var (
