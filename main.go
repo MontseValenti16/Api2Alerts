@@ -7,6 +7,7 @@ import (
     "log"
 
     infraSmart "LifeGuardAlertas/src/samrtwatch/infrastrucutre" 
+    infraDatos "LifeGuardAlertas/src/datos/infraestructure/routes"
 
     "github.com/gin-gonic/gin"
 )
@@ -25,6 +26,10 @@ func main() {
 
     // Inicializa las rutas de smartwatch
     infraSmart.InitRoutes(r)
+
+    infraDatos.InitDatosRoutes(r)
+
+
 
     log.Println("Servidor iniciado en :8081")
     if err := r.Run(":8081"); err != nil {
