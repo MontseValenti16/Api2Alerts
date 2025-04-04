@@ -19,7 +19,7 @@ func NewDatosAnualesMySQL() repository.DatosAnualesRepository {
 }
 
 func (r *DatosAnualesMySQL) GetAll() ([]*entities.DatoAnual, error) {
-	query := "SELECT id_dato_anual, id_persona, anio, promedio FROM datos_anuales"
+	query := "SELECT id_dato_anual, id_persona, anio, promediopasos, promediobpm, promediospo2, promediotemperatura FROM datos_anuales"
 	rows, err := r.conn.DB.Query(query)
 	if err != nil {
 		return nil, fmt.Errorf("error al consultar datos anuales: %w", err)
@@ -29,7 +29,7 @@ func (r *DatosAnualesMySQL) GetAll() ([]*entities.DatoAnual, error) {
 	var datos []*entities.DatoAnual
 	for rows.Next() {
 		var dato entities.DatoAnual
-		err := rows.Scan(&dato.ID, &dato.IDPersona, &dato.Anio, &dato.Promedio)
+		err := rows.Scan(&dato.ID, &dato.IDPersona, &dato.Anio, &dato.Promediopasos, &dato.Promediobpm, &dato.Promediospo2, &dato.Promediotemperatura)
 		if err != nil {
 			return nil, fmt.Errorf("error al escanear fila: %w", err)
 		}
@@ -50,7 +50,7 @@ func NewDatosMensualesMySQL() repository.DatosMensualRepository {
 }
 
 func (r *DatosMensualesMySQL) GetAll() ([]*entities.DatoMensual, error) {
-	query := "SELECT id_dato_mensual, id_persona, fecha_inicio, fecha_fin, promedio FROM datos_mensuales"
+	query := "SELECT id_dato_mensual, id_persona, fecha_inicio, fecha_fin, promediopasos, promediobpm, promediospo2, promediotemperatura FROM datos_mensuales"
 	rows, err := r.conn.DB.Query(query)
 	if err != nil {
 		return nil, fmt.Errorf("error al consultar datos mensuales: %w", err)
@@ -61,7 +61,7 @@ func (r *DatosMensualesMySQL) GetAll() ([]*entities.DatoMensual, error) {
 	for rows.Next() {
 		var dato entities.DatoMensual
 		var fechaInicio, fechaFin string
-		err := rows.Scan(&dato.ID, &dato.IDPersona, &fechaInicio, &fechaFin, &dato.Promedio)
+		err := rows.Scan(&dato.ID, &dato.IDPersona, &fechaInicio, &fechaFin, &dato.Promediopasos, &dato.Promediobpm, &dato.Promediospo2, &dato.Promediotemperatura)
 		if err != nil {
 			return nil, fmt.Errorf("error al escanear fila: %w", err)
 		}
@@ -93,7 +93,7 @@ func NewDatosSemanalesMySQL() repository.DatosSemanalesRepository {
 }
 
 func (r *DatosSemanalesMySQL) GetAll() ([]*entities.DatoSemanal, error) {
-	query := "SELECT id_dato_semanal, id_persona, fecha_inicio, fecha_fin, promedio FROM datos_semanales"
+	query := "SELECT id_dato_semanal, id_persona, fecha_inicio, fecha_fin, promediopasos, promediobpm, promediospo2, promediotemperatura FROM datos_semanales"
 	rows, err := r.conn.DB.Query(query)
 	if err != nil {
 		return nil, fmt.Errorf("error al consultar datos semanales: %w", err)
@@ -104,7 +104,7 @@ func (r *DatosSemanalesMySQL) GetAll() ([]*entities.DatoSemanal, error) {
 	for rows.Next() {
 		var dato entities.DatoSemanal
 		var fechaInicio, fechaFin string
-		err := rows.Scan(&dato.ID, &dato.IDPersona, &fechaInicio, &fechaFin, &dato.Promedio)
+		err := rows.Scan(&dato.ID, &dato.IDPersona, &fechaInicio, &fechaFin, &dato.Promediopasos, &dato.Promediobpm, &dato.Promediospo2, &dato.Promediotemperatura)
 		if err != nil {
 			return nil, fmt.Errorf("error al escanear fila: %w", err)
 		}
@@ -136,7 +136,7 @@ func NewDatosDiariosMySQL() repository.DatosDiariosRepository {
 }
 
 func (r *DatosDiariosMySQL) GetAll() ([]*entities.DatoDiario, error) {
-	query := "SELECT id_dato_diario, id_persona, fecha, hora_inicio, hora_fin, promedio FROM datos_diarios"
+	query := "SELECT id_dato_diario, id_persona, fecha, hora_inicio, hora_fin, promediopasos, promediobpm, promediospo2, promediotemperatura FROM datos_diarios"
 	rows, err := r.conn.DB.Query(query)
 	if err != nil {
 		return nil, fmt.Errorf("error al consultar datos diarios: %w", err)
@@ -146,7 +146,7 @@ func (r *DatosDiariosMySQL) GetAll() ([]*entities.DatoDiario, error) {
 	var datos []*entities.DatoDiario
 	for rows.Next() {
 		var dato entities.DatoDiario
-		err := rows.Scan(&dato.ID, &dato.IDPersona, &dato.Fecha, &dato.HoraInicio, &dato.HoraFin, &dato.Promedio)
+		err := rows.Scan(&dato.ID, &dato.IDPersona, &dato.Fecha, &dato.HoraInicio, &dato.HoraFin, &dato.Promediopasos, &dato.Promediobpm, &dato.Promediospo2, &dato.Promediotemperatura)
 		if err != nil {
 			return nil, fmt.Errorf("error al escanear fila: %w", err)
 		}
