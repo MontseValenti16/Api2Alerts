@@ -10,21 +10,19 @@ import (
 
 func InitRoutes(r *gin.Engine) {
 	// Configurar repositorio
-	db := mysql.NewMySQL()
+	repo := mysql.NewMySQL()
 	
-	// Casos de uso
-	createUseCase := application.NewCreateAlertaUseCase(db)
-	getUseCase := application.NewGetAlertasUseCase(db)
+	// Crear casos de uso
+	createUC := application.NewCreateAlertaUseCase(repo)
+	getUC := application.NewGetAlertasUseCase(repo)
 	
-	// Handlers
-	createHandler := handlers.NewCreateAlertaController(createUseCase)
-	getHandler := handlers.NewGetAlertaController(getUseCase)
+	// Crear handlers
+	createHandler := handlers.NewCreateAlertaController(createUC)
+	getHandler := handlers.NewGetAlertaController(getUC)
 
-	// Grupo de rutas para alertas
-	alertGroup := r.Group("/alertas")
-	{
-		alertGroup.POST("/", createHandler.SaveFiebre)
-		alertGroup.GET("/", getHandler.GetAllAlertas)
-		alertGroup.GET("/:macaddress", getHandler.GetAlertasByMacAddress)
-	}
+	// Configurar rutas
+	r.POST("/alertas", createHandler.SaveFiebre)
+	r.GET("/alertas", getHandler.GetAllAlertas)
+	r.GET("/alertas/:macaddress", getHandler.GetAlertasByMacAddress)
+
 }
