@@ -4,7 +4,6 @@ import (
 	"LifeGuardAlertas/src/alerta/application"
 	"LifeGuardAlertas/src/alerta/infrastructure/handlers"
 	"LifeGuardAlertas/src/alerta/infrastructure/repository/mysql"
-	"log"
 
 	"github.com/gin-gonic/gin"
 )
