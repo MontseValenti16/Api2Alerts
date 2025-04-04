@@ -1,20 +1,33 @@
 package main
 
 import (
-	"LifeGuardAlertas/src/alerta/infrastructure"
-	"LifeGuardAlertas/src/core/middleware"
-	"log"
+    "LifeGuardAlertas/src/alerta/infrastructure"
+    "LifeGuardAlertas/src/core/middleware"
+    "LifeGuardAlertas/src/core/rabbitmq"  
+    "log"
 
-	"github.com/gin-gonic/gin"
+    infraSmart "LifeGuardAlertas/src/samrtwatch/infrastrucutre" 
+
+    "github.com/gin-gonic/gin"
 )
 
 func main() {
-	r := gin.Default()
-	r.Use(middleware.MiddlewareCORS())
-	infrastructure.InitRoutes(r)
+    // Inicializa la conexión MQTT
+    if err := mqtt.InitMQTT(); err != nil { 
+        log.Fatalf("Error al inicializar MQTT: %v", err)
+    }
 
-	log.Println("Servidor iniciado en :8081")
-	if err := r.Run(":8081"); err != nil {
-		log.Fatalf("Error iniciando servidor: %v", err)
-	}
+    r := gin.Default()
+    r.Use(middleware.MiddlewareCORS())
+
+    // Inicializa las rutas de alerta
+    infrastructure.InitRoutes(r)
+
+    // Inicializa las rutas de smartwatch
+    infraSmart.InitRoutes(r)
+
+    log.Println("Servidor iniciado en :8081")
+    if err := r.Run(":8081"); err != nil {
+        log.Fatalf("Error iniciando servidor: %v", err)
+    }
 }
